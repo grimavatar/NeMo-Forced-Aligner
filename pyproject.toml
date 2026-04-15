@@ -9,7 +9,7 @@ description = "NeMo Forced Aligner - a tool for generating token-, word- and seg
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
-version = "0.0.3"
+version = "0.0.4"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
