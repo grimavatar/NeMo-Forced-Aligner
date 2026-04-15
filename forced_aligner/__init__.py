@@ -1,1 +1,1 @@
-from align import ForcedAligner
+from .align import ForcedAligner
