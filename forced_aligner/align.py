@@ -219,7 +219,11 @@ class ForcedAligner:
         self.output_timestep_duration = None
         self.audio_filepath_parts_in_utt_id = 1
 
-    def align(self, audio_paths: str | list[str], text_paths: str | list[str] | None = None, alignment_level: str = "words"):
+    def align(self, audio_paths: str | list[str], text_paths: str | list[str] | None = None, alignment_level: str = "word"):
+
+        alignment_level = alignment_level.lower()
+        assert alignment_level in {"segment", "word", "token"}, \
+            "alignment_level must be one of: 'segment', 'word', or 'token'"
 
         if isinstance(audio_paths, str):
             audio_paths = [audio_paths]
@@ -321,31 +325,31 @@ class ForcedAligner:
             text = text.lower()
         return " ".join(text.split())
 
-    def make_parts(self, utt_obj, alignment_level: str = "words"):
+    def make_parts(self, utt_obj, alignment_level: str = "word"):
         boundary_info_utt = []
         is_valid = lambda part: part.t_start >= 0 and part.t_end >= 0
         for segment_or_token in utt_obj.segments_and_tokens:
             if isinstance(segment_or_token, Segment):
                 segment = segment_or_token
-                if alignment_level == "segments" and is_valid(segment):
+                if alignment_level == "segment" and is_valid(segment):
                     boundary_info_utt.append(segment)
                 else:
                     for word_or_token in segment.words_and_tokens:
                         if isinstance(word_or_token, Word):
                             word = word_or_token
-                            if alignment_level == "words" and is_valid(word):
+                            if alignment_level == "word" and is_valid(word):
                                 boundary_info_utt.append(word)
                             else:
                                 for token in word.tokens:
-                                    if alignment_level == "tokens" and is_valid(token):
+                                    if alignment_level == "token" and is_valid(token):
                                         boundary_info_utt.append(token)
                         else:
                             token = word_or_token
-                            if alignment_level == "tokens" and is_valid(token):
+                            if alignment_level == "token" and is_valid(token):
                                 boundary_info_utt.append(token)
             else:
                 token = segment_or_token
-                if alignment_level == "tokens" and is_valid(token):
+                if alignment_level == "token" and is_valid(token):
                     boundary_info_utt.append(token)
 
         return boundary_info_utt
