@@ -219,7 +219,7 @@ class ForcedAligner:
         self.output_timestep_duration = None
         self.audio_filepath_parts_in_utt_id = 1
 
-    def align(self, audio_paths: str | list[str], text_paths: str | list[str] | None = None):
+    def align(self, audio_paths: str | list[str], text_paths: str | list[str] | None = None, alignment_level: str = "words"):
 
         if isinstance(audio_paths, str):
             audio_paths = [audio_paths]
@@ -306,7 +306,7 @@ class ForcedAligner:
                 #     self.cfg.ctm_file_config,
                 # )
 
-                utt_obj = self.make_parts(utt_obj)
+                utt_obj = self.make_parts(utt_obj, alignment_level)
 
                 utt_data.append(utt_obj)
 
@@ -321,7 +321,7 @@ class ForcedAligner:
             text = text.lower()
         return " ".join(text.split())
 
-    def make_parts(self, utt_obj, alignment_level = "words"):
+    def make_parts(self, utt_obj, alignment_level: str = "words"):
         boundary_info_utt = []
         is_valid = lambda part: part.t_start >= 0 and part.t_end >= 0
         for segment_or_token in utt_obj.segments_and_tokens:
