@@ -26,7 +26,7 @@ from typing import List, Optional
 
 import torch
 from omegaconf import OmegaConf
-from utils.data_prep import (
+from .utils.data_prep import (
     get_batch_starts_ends,
     get_manifest_lines_batch,
 )
