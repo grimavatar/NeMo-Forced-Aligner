@@ -257,11 +257,8 @@ class ForcedAligner:
                 if i < len(manifest)-1:
                     f.write("\n")
 
-        print(manifest_filepath)
-
         # get start and end line IDs of batches
         starts, ends = get_batch_starts_ends(manifest_filepath, self.cfg.batch_size)
-        # print(starts, ends)
 
         utt_data = []
 
@@ -269,14 +266,10 @@ class ForcedAligner:
         for start, end in zip(starts, ends):
             manifest_lines_batch = get_manifest_lines_batch(manifest_filepath, start, end)
 
-            # print(manifest_lines_batch)
-
             if not self.cfg.align_using_pred_text:
                 gt_text_batch = [line.get("text", "") for line in manifest_lines_batch]
             else:
                 gt_text_batch = None
-            
-            # print(gt_text_batch)
 
             (
                 log_probs_batch,
