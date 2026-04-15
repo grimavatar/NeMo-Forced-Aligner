@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nemo-forced-aligner"
+dynamic = ["dependencies"]
+description = "NeMo Forced Aligner - a tool for generating token-, word- and segment-level timestamps of speech in audio"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+version = "0.0.1"
