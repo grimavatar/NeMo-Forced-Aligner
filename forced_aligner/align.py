@@ -337,8 +337,7 @@ class ForcedAligner:
         return utt_data
 
     def make_script(self, text: str, norm: bool = False) -> str:
-        text = text.replace("-", " - ").replace("—", " — ")
-        text = "".join(e for e in text if e.isalnum() or e.isspace())
+        text = "".join(e if e.isalnum() else " " for e in text)
         if norm:
             text = text.lower()
         return " ".join(text.split())
