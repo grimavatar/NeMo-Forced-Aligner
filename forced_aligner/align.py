@@ -45,52 +45,52 @@ TOKENIZER_EXCEPTIONS = ["a.", "b.", "c.", "d.", "e.", "f.", "g.", "h.", "i.", "j
 
 class ForcedAligner:
     """
-Align the utterances in audios and texts.
-Utterances results are returned.
-
-Arguments:
-    pretrained_name: string specifying the name of a CTC NeMo ASR model which will be automatically downloaded
-        from NGC and used for generating the log-probs which we will use to do alignment.
-        Note: NFA can only use CTC models (not Transducer models) at the moment.
-    model_path: string specifying the local filepath to a CTC NeMo ASR model which will be used to generate the
-        log-probs which we will use to do alignment.
-        Note: NFA can only use CTC models (not Transducer models) at the moment.
-        Note: if a model_path is provided, it will override the pretrained_name.
-    align_using_pred_text: if True, will transcribe the audio using the specified model and then use that transcription 
-        as the reference text for the forced alignment. 
-    transcribe_device: None, or a string specifying the device that will be used for generating log-probs (i.e. "transcribing").
-        The string needs to be in a format recognized by torch.device(). If None, NFA will set it to 'cuda' if it is available 
-        (otherwise will set it to 'cpu').
-    viterbi_device: None, or string specifying the device that will be used for doing Viterbi decoding. 
-        The string needs to be in a format recognized by torch.device(). If None, NFA will set it to 'cuda' if it is available 
-        (otherwise will set it to 'cpu').
-    batch_size: int specifying batch size that will be used for generating log-probs and doing Viterbi decoding.
-    use_local_attention: boolean flag specifying whether to try to use local attention for the ASR Model (will only
-        work if the ASR Model is a Conformer model). If local attention is used, we will set the local attention context 
-        size to [64,64].
-    additional_segment_grouping_separator: an optional string or list of strings used to separate the text into smaller segments. 
-        If this is not specified, then the whole text will be treated as a single segment.
-    use_buffered_chunked_streaming: False, if set True, using streaming to do get the logits for alignment
-                        This flag is useful when aligning large audio file.
-                        However, currently the chunk streaming inference does not support batch inference,
-                        which means even you set batch_size > 1, it will only infer one by one instead of doing
-                        the whole batch inference together.
-    chunk_len_in_secs: float chunk length in seconds
-    total_buffer_in_secs: float  Length of buffer (chunk + left and right padding) in seconds
-    chunk_batch_size: int batch size for buffered chunk inference,
-                      which will cut one audio into segments and do inference on chunk_batch_size segments at a time
-    simulate_cache_aware_streaming: False, if set True, using cache aware streaming to do get the logits for alignment
-    
+    Align the utterances in audios and texts.
+    Utterances results are returned.
+    ---
+    Arguments:
+        pretrained_name: string specifying the name of a CTC NeMo ASR model which will be automatically downloaded
+            from NGC and used for generating the log-probs which we will use to do alignment.
+            Note: NFA can only use CTC models (not Transducer models) at the moment.
+        model_path: string specifying the local filepath to a CTC NeMo ASR model which will be used to generate the
+            log-probs which we will use to do alignment.
+            Note: NFA can only use CTC models (not Transducer models) at the moment.
+            Note: if a model_path is provided, it will override the pretrained_name.
+        align_using_pred_text: if True, will transcribe the audio using the specified model and then use that transcription 
+            as the reference text for the forced alignment. 
+        transcribe_device: None, or a string specifying the device that will be used for generating log-probs (i.e. "transcribing").
+            The string needs to be in a format recognized by torch.device(). If None, NFA will set it to 'cuda' if it is available 
+            (otherwise will set it to 'cpu').
+        viterbi_device: None, or string specifying the device that will be used for doing Viterbi decoding. 
+            The string needs to be in a format recognized by torch.device(). If None, NFA will set it to 'cuda' if it is available 
+            (otherwise will set it to 'cpu').
+        batch_size: int specifying batch size that will be used for generating log-probs and doing Viterbi decoding.
+        use_local_attention: boolean flag specifying whether to try to use local attention for the ASR Model (will only
+            work if the ASR Model is a Conformer model). If local attention is used, we will set the local attention context 
+            size to [64,64].
+        additional_segment_grouping_separator: an optional string or list of strings used to separate the text into smaller segments. 
+            If this is not specified, then the whole text will be treated as a single segment.
+        use_buffered_chunked_streaming: False, if set True, using streaming to do get the logits for alignment
+                            This flag is useful when aligning large audio file.
+                            However, currently the chunk streaming inference does not support batch inference,
+                            which means even you set batch_size > 1, it will only infer one by one instead of doing
+                            the whole batch inference together.
+        chunk_len_in_secs: float chunk length in seconds
+        total_buffer_in_secs: float  Length of buffer (chunk + left and right padding) in seconds
+        chunk_batch_size: int batch size for buffered chunk inference,
+                        which will cut one audio into segments and do inference on chunk_batch_size segments at a time
+        simulate_cache_aware_streaming: False, if set True, using cache aware streaming to do get the logits for alignment
+    ---
     RANKINGS:
-    pretrained_name = "nvidia/parakeet-tdt_ctc-1.1b"  		    # Top 1 (1.1b)
-    ---
-    pretrained_name = "stt_en_fastconformer_ctc_xxlarge"  	    # Top 2 (1.1b)
-    pretrained_name = "stt_en_fastconformer_ctc_xlarge"  	    # Top 3 (0.6b)
+    pretrained_name = "nvidia/parakeet-tdt_ctc-1.1b"            # Top 1 (1.1b)
+    
+    pretrained_name = "stt_en_fastconformer_ctc_xxlarge"        # Top 2 (1.1b)
+    pretrained_name = "stt_en_fastconformer_ctc_xlarge"         # Top 3 (0.6b)
     pretrained_name = "stt_en_fastconformer_hybrid_large_pc"    # Top 4 (110m)
-    ---
-    pretrained_name = "nvidia/parakeet-ctc-1.1b"  			    # top 5 (1.1b)
-    pretrained_name = "nvidia/parakeet-tdt_ctc-110m"  		    # Top 6 (110m)
-    pretrained_name = "nvidia/parakeet-ctc-0.6b"  			    # Top 7 (0.6b)
+
+    pretrained_name = "nvidia/parakeet-ctc-1.1b"                # top 5 (1.1b)
+    pretrained_name = "nvidia/parakeet-tdt_ctc-110m"            # Top 6 (110m)
+    pretrained_name = "nvidia/parakeet-ctc-0.6b"                # Top 7 (0.6b)
     """
     def __init__(
         self,
