@@ -167,7 +167,7 @@ class ForcedAligner:
         self.model.eval()
 
         if isinstance(self.model, EncDecHybridRNNTCTCModel):
-            self.model.change_decoding_strategy(decoder_type="ctc")
+            self.model.change_decoding_strategy(decoder_type="ctc", decoding_strategy="greedy_batch")
 
         if self.cfg.use_local_attention:
             # logging.info(
