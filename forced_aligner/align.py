@@ -106,7 +106,7 @@ class ForcedAligner:
         batch_size: int = 1,
         use_local_attention: bool = True,
         additional_segment_grouping_separator: list[str] | None = [".", "?", "!", "..."],
-        greedy_batch: bool = False,
+        greedy_batch_decoding: bool = False,
 
         # Buffered chunked streaming configs
         use_buffered_chunked_streaming: bool = False,
@@ -177,26 +177,35 @@ class ForcedAligner:
         self.model, _ = setup_model(self.cfg, self.transcribe_device)
         self.model.eval()
 
-        if isinstance(self.model, EncDecHybridRNNTCTCModel):
-            if greedy_batch:
-                ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
-                with open_dict(ctc_decoding_cfg):
-                    ctc_decoding_cfg.strategy = "greedy_batch"
-                self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
-            else:
-                self.model.change_decoding_strategy(decoder_type="ctc")
+        if not isinstance(self.model, (EncDecCTCModel, EncDecHybridRNNTCTCModel)):
+            raise NotImplementedError(
+                f"Model is not an instance of NeMo EncDecCTCModel or ENCDecHybridRNNTCTCModel."
+                " Currently only instances of these models are supported"
+            )
+
+        if isinstance(self.model, EncDecCTCModel):
+            print("EncDecCTCModel")
+            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.decoding)
+        elif isinstance(self.model, EncDecHybridRNNTCTCModel):
+            print("EncDecHybridRNNTCTCModel")
+            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
+        else:
+            raise NotImplementedError(
+                f"Model is not an instance of NeMo EncDecCTCModel or ENCDecHybridRNNTCTCModel."
+                " Currently only instances of these models are supported"
+            )
+
+        if greedy_batch_decoding:
+            with open_dict(ctc_decoding_cfg):
+                ctc_decoding_cfg.strategy = "greedy_batch"
+
+        self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
 
         if self.cfg.use_local_attention:
             # logging.info(
             #     "Flag use_local_attention is set to True => will try to use local attention for model if it allows it"
             # )
             self.model.change_attention_model(self_attention_model="rel_pos_local_attn", att_context_size=[64, 64])
-
-        if not (isinstance(self.model, EncDecCTCModel) or isinstance(self.model, EncDecHybridRNNTCTCModel)):
-            raise NotImplementedError(
-                f"Model is not an instance of NeMo EncDecCTCModel or ENCDecHybridRNNTCTCModel."
-                " Currently only instances of these models are supported"
-            )
 
         self.buffered_chunk_params = {}
         if self.cfg.use_buffered_chunked_streaming:
