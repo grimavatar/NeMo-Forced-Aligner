@@ -159,13 +159,13 @@ class ForcedAligner:
             self.transcribe_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
             self.transcribe_device = torch.device(self.cfg.transcribe_device)
-        # logging.info(f"Device to be used for transcription step (`transcribe_device`) is {transcribe_device}")
+        logging.info(f"Device to be used for transcription step (`transcribe_device`) is {transcribe_device}")
 
         if self.cfg.viterbi_device is None:
             self.viterbi_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
             self.viterbi_device = torch.device(self.cfg.viterbi_device)
-        # logging.info(f"Device to be used for viterbi step (`viterbi_device`) is {viterbi_device}")
+        logging.info(f"Device to be used for viterbi step (`viterbi_device`) is {viterbi_device}")
 
         if self.transcribe_device.type == 'cuda' and self.viterbi_device.type == 'cuda':
             logging.warning(
@@ -176,9 +176,6 @@ class ForcedAligner:
         decoding_strategy = decoding_strategy.lower()
         assert decoding_strategy in {"greedy", "greedy_batch"}, \
             "decoding_strategy must be one of: 'greedy' or 'greedy_batch'"
-        
-        self.cfg.aux_ctc.decoding.strategy = decoding_strategy
-        # print(self.cfg.aux_ctc.decoding)
 
         # load model
         self.model, _ = setup_model(self.cfg, self.transcribe_device)
@@ -187,13 +184,13 @@ class ForcedAligner:
         if isinstance(self.model, EncDecCTCModel):
             # print("EncDecCTCModel")
             ctc_decoding_cfg = copy.deepcopy(self.model.cfg.decoding)
-            # ctc_decoding_cfg.strategy = decoding_strategy
+            ctc_decoding_cfg.strategy = decoding_strategy
             self.model.change_decoding_strategy(ctc_decoding_cfg)
         elif isinstance(self.model, EncDecHybridRNNTCTCModel):
             # print("EncDecHybridRNNTCTCModel")
-            # ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
-            # ctc_decoding_cfg.strategy = decoding_strategy
-            self.model.change_decoding_strategy(decoder_type="ctc")
+            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
+            ctc_decoding_cfg.strategy = decoding_strategy
+            self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
         else:
             raise NotImplementedError(
                 f"Model is not an instance of NeMo EncDecCTCModel or ENCDecHybridRNNTCTCModel."
@@ -201,9 +198,9 @@ class ForcedAligner:
             )
 
         if self.cfg.use_local_attention:
-            # logging.info(
-            #     "Flag use_local_attention is set to True => will try to use local attention for model if it allows it"
-            # )
+            logging.info(
+                "Flag use_local_attention is set to True => will try to use local attention for model if it allows it"
+            )
             self.model.change_attention_model(self_attention_model="rel_pos_local_attn", att_context_size=[64, 64])
 
         self.buffered_chunk_params = {}
@@ -228,7 +225,7 @@ class ForcedAligner:
             chunk_len = float(self.cfg.chunk_len_in_secs)
             tokens_per_chunk = math.ceil(chunk_len / model_stride_in_secs)
             mid_delay = math.ceil((chunk_len + (total_buffer - chunk_len) / 2) / model_stride_in_secs)
-            # logging.info(f"tokens_per_chunk is {tokens_per_chunk}, mid_delay is {mid_delay}")
+            logging.info(f"tokens_per_chunk is {tokens_per_chunk}, mid_delay is {mid_delay}")
 
             self.model = FrameBatchASR(
                 asr_model=self.model,
