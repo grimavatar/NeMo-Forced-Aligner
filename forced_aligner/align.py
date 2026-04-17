@@ -106,7 +106,7 @@ class ForcedAligner:
         batch_size: int = 1,
         use_local_attention: bool = True,
         additional_segment_grouping_separator: list[str] | None = [".", "?", "!", "..."],
-        decoding_strategy: str = "greedy_batch",
+        decoding_strategy: str = "greedy",
 
         # Buffered chunked streaming configs
         use_buffered_chunked_streaming: bool = False,
