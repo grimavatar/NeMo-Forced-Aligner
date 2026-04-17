@@ -298,7 +298,6 @@ class ForcedAligner:
                 simulate_cache_aware_streaming=self.cfg.simulate_cache_aware_streaming,
                 use_buffered_chunked_streaming=self.cfg.use_buffered_chunked_streaming,
                 buffered_chunk_params=self.buffered_chunk_params,
-                use_lhotse=False,
             )
 
             alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device)
