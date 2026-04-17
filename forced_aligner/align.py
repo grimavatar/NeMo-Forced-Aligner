@@ -38,7 +38,7 @@ import json
 import shutil
 import tempfile
 from pathlib import Path
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, open_dict
 
 
 # from spacy.lang.en.tokenizer_exceptions import TOKENIZER_EXCEPTIONS
@@ -176,8 +176,14 @@ class ForcedAligner:
         self.model, _ = setup_model(self.cfg, self.transcribe_device)
         self.model.eval()
 
+        # if isinstance(self.model, EncDecHybridRNNTCTCModel):
+        #     self.model.change_decoding_strategy(decoder_type="ctc")
+
         if isinstance(self.model, EncDecHybridRNNTCTCModel):
-            self.model.change_decoding_strategy(decoder_type="ctc")
+            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
+            with open_dict(ctc_decoding_cfg):
+                ctc_decoding_cfg.strategy = "greedy_batch"
+            self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
 
         if self.cfg.use_local_attention:
             # logging.info(
