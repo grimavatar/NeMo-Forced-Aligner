@@ -34,7 +34,7 @@ aligner = ForcedAligner(pretrained_name = model_name)
 audio_paths = [str(e) for e in Path(".").absolute().glob("*wav")]
 text_paths = [str(Path(e).with_suffix(".txt")) for e in audio_paths]
 
-utt_data = aligner.align(audio_path, text_path)
+utt_data = aligner.align(audio_paths, text_paths)
 alignment = aligner.simplify(utt_data)
 ```
 
