@@ -12,19 +12,29 @@ NFA is a tool for generating token-, word- and segment-level timestamps of speec
 
 
 ## Quickstart
-1. Install [NeMo](https://github.com/NVIDIA/NeMo#installation).
-2. Prepare a NeMo-style manifest containing the paths of audio files you would like to process, and (optionally) their text.
-3. Run NFA's `align.py` script with the desired config, e.g.:
+
+Install NFA:
+
     ``` bash
-    python <path_to_NeMo>/tools/nemo_forced_aligner/align.py \
-	    pretrained_name="stt_en_fastconformer_hybrid_large_pc" \
-	    manifest_filepath=<path to manifest of utterances you want to align> \
-	    output_dir=<path to where your output files will be saved>
+    pip install git+https://github.com/grimavatar/NeMo-Forced-Aligner.git
     ```
 
-<p align="center">
-	<img src="https://github.com/NVIDIA/NeMo/releases/download/v1.20.0/nfa_run.png">
-</p>
+## Example
 
-## Documentation 
-More documentation is available [here](https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/main/tools/nemo_forced_aligner.html).
+    ``` python
+	from pathlib import Path
+	from forced_aligner import ForcedAligner
+	
+	model_name = "nvidia/parakeet-tdt_ctc-1.1b"  			# Top 1 (1.1b) - Best
+	# model_name = "stt_en_fastconformer_ctc_xxlarge"  		# Top 2 (1.1b)
+	# model_name = "stt_en_fastconformer_ctc_xlarge"  		# Top 3 (0.6b)
+	# model_name = "stt_en_fastconformer_hybrid_large_pc"   # Top 4 (110m) - Default
+	
+	aligner = ForcedAligner(pretrained_name = model_name)
+	
+	audio_paths = [str(e) for e in Path(".").absolute().glob("*wav")]
+	text_paths = [str(Path(e).with_suffix(".txt")) for e in audio_paths]
+	
+	utt_data = aligner.align(audio_path, text_path)
+	alignment = aligner.simplify(utt_data)
+    ```
