@@ -39,7 +39,12 @@ import tempfile
 from pathlib import Path
 
 
-"""
+# from spacy.lang.en.tokenizer_exceptions import TOKENIZER_EXCEPTIONS
+TOKENIZER_EXCEPTIONS = ["a.", "b.", "c.", "d.", "e.", "f.", "g.", "h.", "i.", "j.", "k.", "l.", "m.", "n.", "o.", "p.", "q.", "r.", "s.", "t.", "u.", "v.", "w.", "x.", "y.", "z.", "ä.", "ö.", "ü.", "._.", "°c.", "°f.", "°k.", "1a.m.", "1p.m.", "2a.m.", "2p.m.", "3a.m.", "3p.m.", "4a.m.", "4p.m.", "5a.m.", "5p.m.", "6a.m.", "6p.m.", "7a.m.", "7p.m.", "8a.m.", "8p.m.", "9a.m.", "9p.m.", "10a.m.", "10p.m.", "11a.m.", "11p.m.", "12a.m.", "12p.m.", "mt.", "ak.", "ala.", "apr.", "ariz.", "ark.", "aug.", "calif.", "colo.", "conn.", "dec.", "del.", "feb.", "fla.", "ga.", "ia.", "id.", "ill.", "ind.", "jan.", "jul.", "jun.", "kan.", "kans.", "ky.", "la.", "mar.", "mass.", "mich.", "minn.", "miss.", "n.c.", "n.d.", "n.h.", "n.j.", "n.m.", "n.y.", "neb.", "nebr.", "nev.", "nov.", "oct.", "okla.", "ore.", "pa.", "s.c.", "sep.", "sept.", "tenn.", "va.", "wash.", "wis.", "a.m.", "adm.", "bros.", "co.", "corp.", "d.c.", "dr.", "e.g.", "gen.", "gov.", "i.e.", "inc.", "jr.", "ltd.", "md.", "messrs.", "mo.", "mont.", "mr.", "mrs.", "ms.", "p.m.", "ph.d.", "prof.", "rep.", "rev.", "sen.", "st.", "vs.", "v.s."]
+
+
+class ForcedAligner:
+    """
 Align the utterances in audios and texts.
 Utterances results are returned.
 
@@ -65,7 +70,7 @@ Arguments:
         size to [64,64].
     additional_segment_grouping_separator: an optional string or list of strings used to separate the text into smaller segments. 
         If this is not specified, then the whole text will be treated as a single segment.
-    use_buffered_infer: False, if set True, using streaming to do get the logits for alignment
+    use_buffered_chunked_streaming: False, if set True, using streaming to do get the logits for alignment
                         This flag is useful when aligning large audio file.
                         However, currently the chunk streaming inference does not support batch inference,
                         which means even you set batch_size > 1, it will only infer one by one instead of doing
@@ -74,53 +79,56 @@ Arguments:
     total_buffer_in_secs: float  Length of buffer (chunk + left and right padding) in seconds
     chunk_batch_size: int batch size for buffered chunk inference,
                       which will cut one audio into segments and do inference on chunk_batch_size segments at a time
-
     simulate_cache_aware_streaming: False, if set True, using cache aware streaming to do get the logits for alignment
-"""
+    
+    RANKINGS:
+    pretrained_name = "nvidia/parakeet-tdt_ctc-1.1b"  		    # Top 1 (1.1b)
+    ---
+    pretrained_name = "stt_en_fastconformer_ctc_xxlarge"  	    # Top 2 (1.1b)
+    pretrained_name = "stt_en_fastconformer_ctc_xlarge"  	    # Top 3 (0.6b)
+    pretrained_name = "stt_en_fastconformer_hybrid_large_pc"    # Top 4 (110m)
+    ---
+    pretrained_name = "nvidia/parakeet-ctc-1.1b"  			    # top 5 (1.1b)
+    pretrained_name = "nvidia/parakeet-tdt_ctc-110m"  		    # Top 6 (110m)
+    pretrained_name = "nvidia/parakeet-ctc-0.6b"  			    # Top 7 (0.6b)
+    """
+    def __init__(
+        self,
+        pretrained_name: str = "stt_en_fastconformer_hybrid_large_pc",
+        model_path: str | None = None,
 
+        # General configs
+        align_using_pred_text: bool = False,
+        transcribe_device: str | None = None,
+        viterbi_device: str | None = None,
+        batch_size: int = 1,
+        use_local_attention: bool = True,
+        additional_segment_grouping_separator: List[str] | None = [".", "?", "!", "..."],
 
-# from spacy.lang.en.tokenizer_exceptions import TOKENIZER_EXCEPTIONS
-TOKENIZER_EXCEPTIONS = ["a.", "b.", "c.", "d.", "e.", "f.", "g.", "h.", "i.", "j.", "k.", "l.", "m.", "n.", "o.", "p.", "q.", "r.", "s.", "t.", "u.", "v.", "w.", "x.", "y.", "z.", "ä.", "ö.", "ü.", "._.", "°c.", "°f.", "°k.", "1a.m.", "1p.m.", "2a.m.", "2p.m.", "3a.m.", "3p.m.", "4a.m.", "4p.m.", "5a.m.", "5p.m.", "6a.m.", "6p.m.", "7a.m.", "7p.m.", "8a.m.", "8p.m.", "9a.m.", "9p.m.", "10a.m.", "10p.m.", "11a.m.", "11p.m.", "12a.m.", "12p.m.", "mt.", "ak.", "ala.", "apr.", "ariz.", "ark.", "aug.", "calif.", "colo.", "conn.", "dec.", "del.", "feb.", "fla.", "ga.", "ia.", "id.", "ill.", "ind.", "jan.", "jul.", "jun.", "kan.", "kans.", "ky.", "la.", "mar.", "mass.", "mich.", "minn.", "miss.", "n.c.", "n.d.", "n.h.", "n.j.", "n.m.", "n.y.", "neb.", "nebr.", "nev.", "nov.", "oct.", "okla.", "ore.", "pa.", "s.c.", "sep.", "sept.", "tenn.", "va.", "wash.", "wis.", "a.m.", "adm.", "bros.", "co.", "corp.", "d.c.", "dr.", "e.g.", "gen.", "gov.", "i.e.", "inc.", "jr.", "ltd.", "md.", "messrs.", "mo.", "mont.", "mr.", "mrs.", "ms.", "p.m.", "ph.d.", "prof.", "rep.", "rev.", "sen.", "st.", "vs.", "v.s."]
+        # Buffered chunked streaming configs
+        use_buffered_chunked_streaming: bool = False,
+        chunk_len_in_secs: float = 1.6,
+        total_buffer_in_secs: float = 4.0,
+        chunk_batch_size: int = 32,
 
-
-@dataclass
-class AlignmentConfig:
-    # Required configs
-    # model_name = "stt_en_fastconformer_ctc_xxlarge"  		# Top 2 (1.1b)
-    # model_name = "stt_en_fastconformer_ctc_xlarge"  		# Top 3 (0.6b)
-    # model_name = "stt_en_fastconformer_hybrid_large_pc"   # Top 4 (110m)
-    # ---
-    # model_name = "nvidia/parakeet-tdt_ctc-1.1b"  			# Top 1
-    # model_name = "nvidia/parakeet-ctc-1.1b"  				# top 5
-    # model_name = "nvidia/parakeet-tdt_ctc-110m"  			# Top 6
-    # model_name = "nvidia/parakeet-ctc-0.6b"  				# Top 7
-    pretrained_name: Optional[str] = "stt_en_fastconformer_hybrid_large_pc"
-    model_path: Optional[str] = None
-
-    # General configs
-    align_using_pred_text: bool = False
-    transcribe_device: Optional[str] = None
-    viterbi_device: Optional[str] = None
-    batch_size: int = 1
-    use_local_attention: bool = True
-    additional_segment_grouping_separator: Optional[List[str]] = field(default_factory=lambda: ['.', '?', '!', '...'])
-
-    # Buffered chunked streaming configs
-    use_buffered_chunked_streaming: bool = False
-    chunk_len_in_secs: float = 1.6
-    total_buffer_in_secs: float = 4.0
-    chunk_batch_size: int = 32
-
-    # Cache aware streaming configs
-    simulate_cache_aware_streaming: Optional[bool] = False
-
-
-class ForcedAligner:
-    def __init__(self, *args, **kwargs):
-        if not kwargs.get("pretrained_name"):
-            kwargs.pop("pretrained_name", None)
-
-        cfg = AlignmentConfig(*args, **kwargs)
+        # Cache aware streaming configs
+        simulate_cache_aware_streaming: bool | None = False,    
+    ):
+        cfg = dict(
+            pretrained_name=pretrained_name,
+            model_path=model_path,
+            align_using_pred_text=align_using_pred_text,
+            transcribe_device=transcribe_device,
+            viterbi_device=viterbi_device,
+            batch_size=batch_size,
+            use_local_attention=use_local_attention,
+            additional_segment_grouping_separator=additional_segment_grouping_separator,
+            use_buffered_chunked_streaming=use_buffered_chunked_streaming,
+            chunk_len_in_secs=chunk_len_in_secs,
+            total_buffer_in_secs=total_buffer_in_secs,
+            chunk_batch_size=chunk_batch_size,
+            simulate_cache_aware_streaming=simulate_cache_aware_streaming,
+        )
 
         self.cfg = OmegaConf.structured(cfg)
 
@@ -167,7 +175,7 @@ class ForcedAligner:
         self.model.eval()
 
         if isinstance(self.model, EncDecHybridRNNTCTCModel):
-            self.model.change_decoding_strategy(decoder_type="ctc", decoding_strategy="greedy_batch")
+            self.model.change_decoding_strategy(decoder_type="ctc")
 
         if self.cfg.use_local_attention:
             # logging.info(
