@@ -15,26 +15,26 @@ NFA is a tool for generating token-, word- and segment-level timestamps of speec
 
 Install NFA:
 
-    ```bash
-    pip install git+https://github.com/grimavatar/NeMo-Forced-Aligner.git
-    ```
+```bash
+pip install git+https://github.com/grimavatar/NeMo-Forced-Aligner.git
+```
 
 ## Example
 
-    ```python
-	from pathlib import Path
-	from forced_aligner import ForcedAligner
-	
-	model_name = "nvidia/parakeet-tdt_ctc-1.1b"  			# Top 1 (1.1b) - Best
-	# model_name = "stt_en_fastconformer_ctc_xxlarge"  		# Top 2 (1.1b)
-	# model_name = "stt_en_fastconformer_ctc_xlarge"  		# Top 3 (0.6b)
-	# model_name = "stt_en_fastconformer_hybrid_large_pc"   # Top 4 (110m) - Default
-	
-	aligner = ForcedAligner(pretrained_name = model_name)
-	
-	audio_paths = [str(e) for e in Path(".").absolute().glob("*wav")]
-	text_paths = [str(Path(e).with_suffix(".txt")) for e in audio_paths]
-	
-	utt_data = aligner.align(audio_path, text_path)
-	alignment = aligner.simplify(utt_data)
-    ```
+```python
+from pathlib import Path
+from forced_aligner import ForcedAligner
+
+model_name = "nvidia/parakeet-tdt_ctc-1.1b"  			# Top 1 (1.1b) - Best
+# model_name = "stt_en_fastconformer_ctc_xxlarge"  		# Top 2 (1.1b)
+# model_name = "stt_en_fastconformer_ctc_xlarge"  		# Top 3 (0.6b)
+# model_name = "stt_en_fastconformer_hybrid_large_pc"   # Top 4 (110m) - Default
+
+aligner = ForcedAligner(pretrained_name = model_name)
+
+audio_paths = [str(e) for e in Path(".").absolute().glob("*wav")]
+text_paths = [str(Path(e).with_suffix(".txt")) for e in audio_paths]
+
+utt_data = aligner.align(audio_path, text_path)
+alignment = aligner.simplify(utt_data)
+```
