@@ -6,12 +6,6 @@ try:
     from nemo.collections.asr.models.hybrid_rnnt_ctc_models import EncDecHybridRNNTCTCModel
     from nemo.collections.asr.parts.utils.streaming_utils import FrameBatchASR
     from nemo.collections.asr.parts.utils.transcribe_utils import setup_model
-    from nemo.collections.asr.parts.utils.aligner_utils import Segment, Word
-    from nemo.collections.asr.parts.utils.aligner_utils import (
-        add_t_start_end_to_utt_obj,
-        get_batch_variables,
-        viterbi_decoding,
-    )
 except ImportError:
     raise ImportError(
         "Missing required dependency for NFA. "
@@ -21,20 +15,30 @@ except ImportError:
         "  pip install git+https://github.com/NVIDIA/NeMo.git"
     )
 
-import copy
-import math
-
-import torch
-from omegaconf import OmegaConf
 from .utils.data_prep import (
     get_batch_starts_ends,
     get_manifest_lines_batch,
 )
 
+try:
+    from .utils.aligner_utils import Segment, Word
+    from .utils.aligner_utils import add_t_start_end_to_utt_obj, get_batch_variables, viterbi_decoding
+except ImportError:
+    from nemo.collections.asr.parts.utils.aligner_utils import Segment, Word
+    from nemo.collections.asr.parts.utils.aligner_utils import (
+        add_t_start_end_to_utt_obj,
+        get_batch_variables,
+        viterbi_decoding,
+    )
+
+import torch
+import copy
+import math
 import json
 import shutil
 import tempfile
 from pathlib import Path
+from omegaconf import OmegaConf
 
 
 # from spacy.lang.en.tokenizer_exceptions import TOKENIZER_EXCEPTIONS
@@ -297,7 +301,6 @@ class ForcedAligner:
                 simulate_cache_aware_streaming=self.cfg.simulate_cache_aware_streaming,
                 use_buffered_chunked_streaming=self.cfg.use_buffered_chunked_streaming,
                 buffered_chunk_params=self.buffered_chunk_params,
-                verbose=False,
             )
 
             alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device)
