@@ -216,7 +216,6 @@ class ForcedAligner:
                 frame_len=chunk_len,
                 total_buffer=self.cfg.total_buffer_in_secs,
                 batch_size=self.cfg.chunk_batch_size,
-                use_lhotse=False,
             )
             self.buffered_chunk_params = {
                 "delay": mid_delay,
@@ -298,13 +297,14 @@ class ForcedAligner:
                 simulate_cache_aware_streaming=self.cfg.simulate_cache_aware_streaming,
                 use_buffered_chunked_streaming=self.cfg.use_buffered_chunked_streaming,
                 buffered_chunk_params=self.buffered_chunk_params,
+                verbose=False,
             )
 
             alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device)
 
             for utt_obj, alignment_utt in zip(utt_obj_batch, alignments_batch):
 
-                utt_obj = add_t_start_end_to_utt_obj(utt_obj, alignment_utt, self.output_timestep_duration, use_lhotse=False)
+                utt_obj = add_t_start_end_to_utt_obj(utt_obj, alignment_utt, self.output_timestep_duration)
 
                 # utt_obj = make_ctm_files(
                 #     utt_obj,
