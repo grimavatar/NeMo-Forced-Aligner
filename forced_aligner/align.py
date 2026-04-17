@@ -126,7 +126,6 @@ class ForcedAligner:
             total_buffer_in_secs=total_buffer_in_secs,
             chunk_batch_size=chunk_batch_size,
             simulate_cache_aware_streaming=simulate_cache_aware_streaming,
-            use_lhotse=False,
         )
 
         self.cfg = OmegaConf.structured(cfg)
@@ -217,6 +216,7 @@ class ForcedAligner:
                 frame_len=chunk_len,
                 total_buffer=self.cfg.total_buffer_in_secs,
                 batch_size=self.cfg.chunk_batch_size,
+                use_lhotse=False,
             )
             self.buffered_chunk_params = {
                 "delay": mid_delay,
@@ -298,6 +298,7 @@ class ForcedAligner:
                 simulate_cache_aware_streaming=self.cfg.simulate_cache_aware_streaming,
                 use_buffered_chunked_streaming=self.cfg.use_buffered_chunked_streaming,
                 buffered_chunk_params=self.buffered_chunk_params,
+                use_lhotse=False,
             )
 
             alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device)
