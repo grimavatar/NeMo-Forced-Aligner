@@ -183,23 +183,18 @@ class ForcedAligner:
                 " Currently only instances of these models are supported"
             )
 
+        if greedy_batch_decoding:
+            decoding_strategy = "greedy_batch"
+        else:
+            decoding_strategy = "greedy"
+
         if isinstance(self.model, EncDecCTCModel):
             print("EncDecCTCModel")
-            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.decoding)
+            self.model.cfg.decoding.strategy = decoding_strategy
         elif isinstance(self.model, EncDecHybridRNNTCTCModel):
             print("EncDecHybridRNNTCTCModel")
-            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
-        else:
-            raise NotImplementedError(
-                f"Model is not an instance of NeMo EncDecCTCModel or ENCDecHybridRNNTCTCModel."
-                " Currently only instances of these models are supported"
-            )
-
-        if greedy_batch_decoding:
-            with open_dict(ctc_decoding_cfg):
-                ctc_decoding_cfg.strategy = "greedy_batch"
-
-        self.model.change_decoding_strategy(ctc_decoding_cfg)
+            self.model.cfg.aux_ctc.decoding.strategy = decoding_strategy
+            self.model.change_decoding_strategy(decoder_type="ctc")
 
         if self.cfg.use_local_attention:
             # logging.info(
