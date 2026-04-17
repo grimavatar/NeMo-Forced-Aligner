@@ -23,8 +23,6 @@ except ImportError:
 
 import copy
 import math
-from dataclasses import dataclass, field
-from typing import List, Optional
 
 import torch
 from omegaconf import OmegaConf
@@ -128,6 +126,7 @@ class ForcedAligner:
             total_buffer_in_secs=total_buffer_in_secs,
             chunk_batch_size=chunk_batch_size,
             simulate_cache_aware_streaming=simulate_cache_aware_streaming,
+            use_lhotse=False,
         )
 
         self.cfg = OmegaConf.structured(cfg)
