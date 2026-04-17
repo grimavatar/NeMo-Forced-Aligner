@@ -199,7 +199,7 @@ class ForcedAligner:
             with open_dict(ctc_decoding_cfg):
                 ctc_decoding_cfg.strategy = "greedy_batch"
 
-        self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
+        self.model.change_decoding_strategy(ctc_decoding_cfg)
 
         if self.cfg.use_local_attention:
             # logging.info(
