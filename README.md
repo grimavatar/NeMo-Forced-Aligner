@@ -15,13 +15,13 @@ NFA is a tool for generating token-, word- and segment-level timestamps of speec
 
 Install NFA:
 
-    ``` bash
+    ```bash
     pip install git+https://github.com/grimavatar/NeMo-Forced-Aligner.git
     ```
 
 ## Example
 
-    ``` python
+    ```python
 	from pathlib import Path
 	from forced_aligner import ForcedAligner
 	
