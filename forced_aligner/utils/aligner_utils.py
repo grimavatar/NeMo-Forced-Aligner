@@ -878,6 +878,7 @@ def get_batch_variables(
     buffered_chunk_params: dict = {},
     padding_value: float = -3.4e38,
     has_hypotheses: bool = False,
+    verbose: bool = False,
 ):
     """
     Args:
@@ -947,14 +948,14 @@ def get_batch_variables(
                 if has_hypotheses:
                     hypotheses = audio
                 else:
-                    hypotheses = model.transcribe(audio, return_hypotheses=True, batch_size=batch_size, verbose=False)
+                    hypotheses = model.transcribe(audio, return_hypotheses=True, batch_size=batch_size, verbose=verbose)
         else:
             assert isinstance(audio, list) or isinstance(
                 audio, str
             ), "audio must be a list of audio files or a single audio file"
             with torch.no_grad():
                 hypotheses = model.transcribe_simulate_cache_aware_streaming(
-                    audio, return_hypotheses=True, batch_size=batch_size, verbose=False
+                    audio, return_hypotheses=True, batch_size=batch_size, verbose=verbose
                 )
 
         # if hypotheses form a tuple (from Hybrid model), extract just "best" hypothesis
@@ -972,7 +973,7 @@ def get_batch_variables(
         for audio_sample in tqdm(audio, desc="Sample:"):
             model.reset()
             model.read_audio_file(audio_sample, delay, model_stride_in_secs)
-            hyp, logits = model.transcribe(tokens_per_chunk, delay, keep_logits=True, verbose=False)
+            hyp, logits = model.transcribe(tokens_per_chunk, delay, keep_logits=True, verbose=verbose)
             log_probs_list_batch.append(logits)
             T_list_batch.append(logits.shape[0])
             pred_text_batch.append(hyp)
