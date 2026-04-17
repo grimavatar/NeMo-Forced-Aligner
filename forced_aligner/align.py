@@ -300,11 +300,11 @@ class ForcedAligner:
                 buffered_chunk_params=self.buffered_chunk_params,
             )
 
-            alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device)
+            alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device, use_lhotse=False)
 
             for utt_obj, alignment_utt in zip(utt_obj_batch, alignments_batch):
 
-                utt_obj = add_t_start_end_to_utt_obj(utt_obj, alignment_utt, self.output_timestep_duration)
+                utt_obj = add_t_start_end_to_utt_obj(utt_obj, alignment_utt, self.output_timestep_duration, use_lhotse=False)
 
                 # utt_obj = make_ctm_files(
                 #     utt_obj,
