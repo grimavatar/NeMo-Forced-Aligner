@@ -101,7 +101,7 @@ class ForcedAligner:
         viterbi_device: str | None = None,
         batch_size: int = 1,
         use_local_attention: bool = True,
-        additional_segment_grouping_separator: List[str] | None = [".", "?", "!", "..."],
+        additional_segment_grouping_separator: list[str] | None = [".", "?", "!", "..."],
 
         # Buffered chunked streaming configs
         use_buffered_chunked_streaming: bool = False,
