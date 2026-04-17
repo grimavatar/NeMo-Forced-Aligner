@@ -106,6 +106,7 @@ class ForcedAligner:
         batch_size: int = 1,
         use_local_attention: bool = True,
         additional_segment_grouping_separator: list[str] | None = [".", "?", "!", "..."],
+        greedy_batch: bool = False,
 
         # Buffered chunked streaming configs
         use_buffered_chunked_streaming: bool = False,
@@ -114,7 +115,7 @@ class ForcedAligner:
         chunk_batch_size: int = 32,
 
         # Cache aware streaming configs
-        simulate_cache_aware_streaming: bool | None = False,    
+        simulate_cache_aware_streaming: bool | None = False,
     ):
         cfg = dict(
             pretrained_name=pretrained_name,
@@ -176,14 +177,14 @@ class ForcedAligner:
         self.model, _ = setup_model(self.cfg, self.transcribe_device)
         self.model.eval()
 
-        # if isinstance(self.model, EncDecHybridRNNTCTCModel):
-        #     self.model.change_decoding_strategy(decoder_type="ctc")
-
         if isinstance(self.model, EncDecHybridRNNTCTCModel):
-            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
-            with open_dict(ctc_decoding_cfg):
-                ctc_decoding_cfg.strategy = "greedy_batch"
-            self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
+            if greedy_batch:
+                ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
+                with open_dict(ctc_decoding_cfg):
+                    ctc_decoding_cfg.strategy = "greedy_batch"
+                self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
+            else:
+                self.model.change_decoding_strategy(decoder_type="ctc")
 
         if self.cfg.use_local_attention:
             # logging.info(
