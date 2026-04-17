@@ -106,7 +106,7 @@ class ForcedAligner:
         batch_size: int = 1,
         use_local_attention: bool = True,
         additional_segment_grouping_separator: list[str] | None = [".", "?", "!", "..."],
-        greedy_batch_decoding: bool = False,
+        decoding_strategy: str = "greedy",
 
         # Buffered chunked streaming configs
         use_buffered_chunked_streaming: bool = False,
@@ -173,28 +173,29 @@ class ForcedAligner:
                 'it may help to change one or both devices to be the CPU.'
             )
 
+        decoding_strategy = decoding_strategy.lower()
+        assert decoding_strategy in {"greedy", "greedy_batch", "beam", "beam_batch"}, \
+            "decoding_strategy must be one of: 'greedy' or 'greedy_batch'"
+
         # load model
         self.model, _ = setup_model(self.cfg, self.transcribe_device)
         self.model.eval()
 
-        if not isinstance(self.model, (EncDecCTCModel, EncDecHybridRNNTCTCModel)):
+        if isinstance(self.model, EncDecCTCModel):
+            print("EncDecCTCModel")
+            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.decoding)
+            ctc_decoding_cfg.strategy = decoding_strategy
+            self.model.change_decoding_strategy(ctc_decoding_cfg)
+        elif isinstance(self.model, EncDecHybridRNNTCTCModel):
+            print("EncDecHybridRNNTCTCModel")
+            ctc_decoding_cfg = copy.deepcopy(self.model.cfg.aux_ctc.decoding)
+            ctc_decoding_cfg.strategy = decoding_strategy
+            self.model.change_decoding_strategy(ctc_decoding_cfg, decoder_type="ctc")
+        else:
             raise NotImplementedError(
                 f"Model is not an instance of NeMo EncDecCTCModel or ENCDecHybridRNNTCTCModel."
                 " Currently only instances of these models are supported"
             )
-
-        if greedy_batch_decoding:
-            decoding_strategy = "greedy_batch"
-        else:
-            decoding_strategy = "greedy"
-
-        if isinstance(self.model, EncDecCTCModel):
-            print("EncDecCTCModel")
-            self.model.cfg.decoding.strategy = decoding_strategy
-        elif isinstance(self.model, EncDecHybridRNNTCTCModel):
-            print("EncDecHybridRNNTCTCModel")
-            self.model.cfg.aux_ctc.decoding.strategy = decoding_strategy
-            self.model.change_decoding_strategy(decoder_type="ctc")
 
         if self.cfg.use_local_attention:
             # logging.info(
