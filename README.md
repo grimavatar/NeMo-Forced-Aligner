@@ -10,6 +10,8 @@ Try it out: <a href="https://huggingface.co/spaces/erastorgueva-nv/NeMo-Forced-A
 
 NFA is a tool for generating token-, word- and segment-level timestamps of speech in audio using NeMo's CTC-based Automatic Speech Recognition models. You can provide your own reference text, or use ASR-generated transcription. You can use NeMo's ASR Model checkpoints out of the box in [14+ languages](https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/stable/asr/results.html#speech-recognition-languages), or train your own model. NFA can be used on long audio files of 1+ hours duration (subject to your hardware and the ASR model used).
 
+NFA is CPU-friendly.
+
 ## Install
 
 ```bash
@@ -35,3 +37,8 @@ text_paths = [str(Path(e).with_suffix(".txt")) for e in audio_paths]
 utt_data = aligner.align(audio_path, text_path)
 alignment = aligner.simplify(utt_data)
 ```
+
+## Licenses
+
+NeMo is licensed under the [Apache License 2.0](https://github.com/NVIDIA/NeMo?tab=Apache-2.0-1-ov-file).
+
