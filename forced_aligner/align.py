@@ -300,7 +300,7 @@ class ForcedAligner:
                 buffered_chunk_params=self.buffered_chunk_params,
             )
 
-            alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device, use_lhotse=False)
+            alignments_batch = viterbi_decoding(log_probs_batch, y_batch, T_batch, U_batch, self.viterbi_device)
 
             for utt_obj, alignment_utt in zip(utt_obj_batch, alignments_batch):
 
