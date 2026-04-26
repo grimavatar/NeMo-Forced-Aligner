@@ -1,5 +1,3 @@
-from .utils.nemo_logging import suppress_logging; suppress_logging()
-
 try:
     from nemo.utils import logging
     from nemo.collections.asr.models.ctc_models import EncDecCTCModel
